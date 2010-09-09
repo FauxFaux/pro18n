@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -19,6 +20,8 @@ import org.objectweb.asm.util.ASMifierClassVisitor;
 
 
 public class Procralisation {
+	public static final Charset ENCODING = Charset.forName("UTF-8");
+
 	static class ProcralisationException extends RuntimeException {
 		public ProcralisationException(String string) {
 			super(string);
@@ -56,11 +59,12 @@ public class Procralisation {
 		cv.visitMaxs(1, 1);
 		cv.visitEnd();
 
+		final Map<String, String> msgs = new HashMap<String, String>(messages);
 		for (Method m : in.getDeclaredMethods()) {
 			if (!Modifier.isAbstract(m.getModifiers()))
 				continue;
 			final String key = m.getName();
-			final String s = messages.get(key);
+			final String s = msgs.remove(key);
 			if (null == s)
 				throw new ProcralisationException(nameWithSlashes + "'s " + key + " not found in file");
 
@@ -109,6 +113,10 @@ public class Procralisation {
 			mv.visitMaxs(5 + params.length, 1 + 2*params.length);
 			mv.visitEnd();
 		}
+
+		if (!msgs.isEmpty())
+			throw new ProcralisationException(nameWithSlashes + "'s file has extra entries: " + msgs.keySet());
+
 		cw.visitEnd();
 
 		final byte[] by = cw.toByteArray();
@@ -196,7 +204,7 @@ public class Procralisation {
 	}
 
 	private static Map<String, String> readMessages(final InputStream ras) throws IOException {
-		final BufferedReader br = new BufferedReader(new InputStreamReader(ras));
+		final BufferedReader br = new BufferedReader(new InputStreamReader(ras, ENCODING));
 		try {
 			final Map<String, String> messages = new HashMap<String, String>();
 			String q;

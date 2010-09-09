@@ -70,9 +70,17 @@ public class ProcralisationTest {
 	}
 
 	@Test(expected=ProcralisationException.class)
-	public void testAngry() {
+	public void testAngryCount() {
 		Procralisation.make(TwoArgs.class, new HashMap<String, String>() {{
 			put("two", "{0} {1} {2}");
+		}});
+	}
+
+	@Test(expected=ProcralisationException.class)
+	public void testAngryExtra() {
+		Procralisation.make(TwoArgs.class, new HashMap<String, String>() {{
+			put("two", "{0} {1}");
+			put("unnecessary", "pony");
 		}});
 	}
 }
