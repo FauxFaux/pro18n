@@ -18,7 +18,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.util.ASMifierClassVisitor;
 
 
-
 public class Procralisation {
 	static class ProcralisationException extends RuntimeException {
 		public ProcralisationException(String string) {
@@ -74,12 +73,7 @@ public class Procralisation {
 						" has the wrong number of arguments" +
 						" (" + params.length + " vs. " + expAgs + " in file)");
 
-			final StringBuilder signature = new StringBuilder("(");
-			for (Class<?> t : params)
-				signature.append(Type.getType(t));
-			signature.append(")Ljava/lang/String;");
-
-			final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key, signature.toString(), null, null);
+			final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key, signature(params), null, null);
 			mv.visitCode();
 
 			// first argument for method format
@@ -131,6 +125,15 @@ public class Procralisation {
 		} catch (IllegalAccessException e) {
 			throw new ProcralisationException(e);
 		}
+	}
+
+	private static String signature(final Class<?>[] params) {
+		final StringBuilder signature = new StringBuilder("(");
+		for (Class<?> t : params)
+			signature.append(Type.getType(t));
+		signature.append(")Ljava/lang/String;");
+
+		return signature.toString();
 	}
 
 	private static Type typeForStringValueOf(Class<?> cl) {
