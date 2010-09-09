@@ -1,4 +1,5 @@
 package com.goeswhere.pro18n;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,15 +38,12 @@ public class Procralisation {
 
         final ClassWriter cw = new ClassWriter(0);
         final String nwsImpl = nameWithSlashes + "Impl";
-        cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, nwsImpl,
-                null, nameWithSlashes, null);
+        cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, nwsImpl, null, nameWithSlashes, null);
 
-        final MethodVisitor cv = cw.visitMethod(Opcodes.ACC_PUBLIC,
-                "<init>", "()V", null, null);
+        final MethodVisitor cv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         cv.visitCode();
         cv.visitVarInsn(Opcodes.ALOAD, 0);
-        cv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-            nameWithSlashes, "<init>", "()V");
+        cv.visitMethodInsn(Opcodes.INVOKESPECIAL, nameWithSlashes, "<init>", "()V");
         cv.visitInsn(Opcodes.RETURN);
         cv.visitMaxs(1, 1);
         cv.visitEnd();
@@ -58,8 +56,7 @@ public class Procralisation {
             if (null == s)
                 throw new ProcralisationException(key + " not found in source ");
 
-            final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key,
-                    "()Ljava/lang/String;", null, null);
+            final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key, "()Ljava/lang/String;", null, null);
             mv.visitCode();
             mv.visitLdcInsn(s);
             mv.visitInsn(Opcodes.ARETURN);
