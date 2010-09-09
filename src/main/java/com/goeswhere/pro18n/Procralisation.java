@@ -129,25 +129,19 @@ public class Procralisation {
 				if (cl.isPrimitive()) { // PANIC
 
 					if (cl.isAssignableFrom(int.class)){
-						mv.visitVarInsn(Opcodes.ILOAD, parameter);
-						objectify(mv, cl, "java/lang/Integer");
+						objectify(mv, cl, "java/lang/Integer", Opcodes.ILOAD, parameter);
 					} else if (cl.isAssignableFrom(long.class)) {
-						mv.visitVarInsn(Opcodes.LLOAD, parameter);
-						objectify(mv, cl, "java/lang/Long");
+						objectify(mv, cl, "java/lang/Long", Opcodes.LLOAD, parameter);
 						++parameter;
 					} else if (cl.isAssignableFrom(float.class)) {
-						mv.visitVarInsn(Opcodes.FLOAD, parameter);
-						objectify(mv, cl, "java/lang/Float");
+						objectify(mv, cl, "java/lang/Float", Opcodes.FLOAD, parameter);
 					} else if (cl.isAssignableFrom(double.class)) {
-						mv.visitVarInsn(Opcodes.DLOAD, parameter);
-						objectify(mv, cl, "java/lang/Double");
+						objectify(mv, cl, "java/lang/Double", Opcodes.DLOAD, parameter);
 						++parameter;
 					} else if (cl.isAssignableFrom(boolean.class)) {
-						mv.visitVarInsn(Opcodes.ILOAD, parameter);
-						objectify(mv, cl, "java/lang/Boolean");
+						objectify(mv, cl, "java/lang/Boolean", Opcodes.ILOAD, parameter);
 					} else if (cl.isAssignableFrom(short.class)) {
-						mv.visitVarInsn(Opcodes.ILOAD, parameter);
-						objectify(mv, cl, "java/lang/Short");
+						objectify(mv, cl, "java/lang/Short", Opcodes.ILOAD, parameter);
 					} else
 						throw new IllegalArgumentException("Unexpected primitive type " + cl);
 
@@ -189,7 +183,8 @@ public class Procralisation {
 		}
 	}
 
-	private static void objectify(final MethodVisitor mv, Class<?> cl, final String ty) {
+	private static void objectify(final MethodVisitor mv, Class<?> cl, final String ty, int ins, int parameter) {
+		mv.visitVarInsn(ins, parameter);
 		mv.visitMethodInsn(Opcodes.INVOKESTATIC, ty,
 				"valueOf", "(" + Type.getType(cl) + ")L" + ty + ";");
 	}
