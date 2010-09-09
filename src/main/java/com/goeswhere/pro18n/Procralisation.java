@@ -35,27 +35,51 @@ public class Procralisation {
 		}
 	}
 
-	static <T> T make(Class<T> in) {
-		return make(in, Locale.getDefault());
+//	public static void main(String[] args) throws Exception {
+//		ASMifierClassVisitor.main(new String[] { "c:/workspace/scratch/bin/Scratch.class" });
+//	}
+
+	private static Locale getDefaultLocale() {
+		return Locale.getDefault();
 	}
 
+	static <T> T make(Class<T> in) {
+		return make(in, getDefaultLocale());
+	}
+
+
 	static <T> T make(Class<T> in, Locale l) {
-		return make(in, loadProperties(in, l));
+		return make(in, loadProperties(in, l), l);
 	}
 
 	static <T> T make(Class<T> in, Map<String, String> messages) {
+		return make(in, messages, getDefaultLocale());
+	}
+
+	static <T> T make(Class<T> in, Map<String, String> messages, Locale l) {
 		final String nameWithSlashes = nameWithSlashes(in);
 
 		final ClassWriter cw = new ClassWriter(0);
 		final String nwsImpl = nameWithSlashes + "Impl";
 		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, nwsImpl, null, nameWithSlashes, null);
 
+		cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "l", "Ljava/util/Locale;", null, null).visitEnd();
+
 		final MethodVisitor cv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
 		cv.visitCode();
 		cv.visitVarInsn(Opcodes.ALOAD, 0);
 		cv.visitMethodInsn(Opcodes.INVOKESPECIAL, nameWithSlashes, "<init>", "()V");
+		cv.visitVarInsn(Opcodes.ALOAD, 0);
+		cv.visitTypeInsn(Opcodes.NEW, "java/util/Locale");
+		cv.visitInsn(Opcodes.DUP);
+		cv.visitLdcInsn(l.getLanguage());
+		cv.visitLdcInsn(l.getCountry());
+		cv.visitLdcInsn(l.getVariant());
+		cv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/Locale",
+				"<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+		cv.visitFieldInsn(Opcodes.PUTFIELD, nwsImpl, "l", "Ljava/util/Locale;");
 		cv.visitInsn(Opcodes.RETURN);
-		cv.visitMaxs(1, 1);
+		cv.visitMaxs(6, 1);
 		cv.visitEnd();
 
 		final Map<String, String> msgs = new HashMap<String, String>(messages);
@@ -79,8 +103,16 @@ public class Procralisation {
 			final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key, signature(params), null, null);
 			mv.visitCode();
 
-			// first argument for method format
+			mv.visitTypeInsn(Opcodes.NEW, "java/text/MessageFormat");
+			mv.visitInsn(Opcodes.DUP);
+
 			mv.visitLdcInsn(s);
+
+			mv.visitVarInsn(Opcodes.ALOAD, 0);
+			mv.visitFieldInsn(Opcodes.GETFIELD, nwsImpl, "l", "Ljava/util/Locale;");
+
+			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/text/MessageFormat",
+					"<init>", "(Ljava/lang/String;Ljava/util/Locale;)V");
 
 			// new Object[length]
 			mv.visitLdcInsn(params.length);
@@ -105,9 +137,8 @@ public class Procralisation {
 				// Stack: (Object[5])
 			}
 
-
-			mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/text/MessageFormat", "format",
-					"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;");
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/text/MessageFormat",
+					"format", "(Ljava/lang/Object;)Ljava/lang/String;");
 			mv.visitInsn(Opcodes.ARETURN);
 			mv.visitMaxs(5 + params.length, 1 + 2*params.length);
 			mv.visitEnd();
@@ -119,6 +150,8 @@ public class Procralisation {
 		cw.visitEnd();
 
 		final byte[] by = cw.toByteArray();
+
+//		CheckClassAdapter.verify(new ClassReader(by), true, new PrintWriter(System.out));
 
 		try {
 			return new ClassLoader(Procralisation.class.getClassLoader()) {

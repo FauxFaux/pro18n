@@ -91,4 +91,12 @@ public class ProcralisationTest {
 		assertEquals("e3n", m.three());
 		assertEquals("4", m.four());
 	}
+
+	@Test public void testLocaliseNumbers() {
+		final TwoArgs m = Procralisation.make(TwoArgs.class, new HashMap<String, String>() {{
+			put("two", "{0} {1}");
+		}});
+
+	}
+
 }
