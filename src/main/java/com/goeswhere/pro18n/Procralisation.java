@@ -131,7 +131,7 @@ public class Procralisation {
                 br.close();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failure to read " + filename, null); //$NON-NLS-1$
+            throw new RuntimeException("Failure to read " + filename, e); //$NON-NLS-1$
         }
         return messages;
     }
