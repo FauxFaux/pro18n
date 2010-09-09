@@ -10,7 +10,7 @@ public class ProcralisationTest {
     @Test public void test() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         final Strings m = Strings.get();
         assertEquals(Strings.class.getName() + "Impl", m.getClass().getName());
-        assertEquals("foo's contents", m.foo()); //$NON-NLS-1$
-        assertEquals("bar's contents", m.bar()); //$NON-NLS-1$
+        assertEquals("foo's contents", m.foo());
+        assertEquals("bar's contents", m.bar());
     }
 }

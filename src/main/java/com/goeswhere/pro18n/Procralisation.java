@@ -1,21 +1,17 @@
 package com.goeswhere.pro18n;
 import java.io.BufferedReader;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.util.CheckClassAdapter;
 
 public class Procralisation {
     static class ProcralisationException extends RuntimeException {
@@ -33,7 +29,7 @@ public class Procralisation {
         final Locale l = Locale.ENGLISH;
 
         final String nameWithSlashes = slashify(name);
-        final String filename = nameWithSlashes + "_" + propertyCode(l) + ".properties"; //$NON-NLS-1$
+        final String filename = nameWithSlashes + "_" + propertyCode(l) + ".properties";
 
         final Map<String, String> messages = loadProperties(in, filename);
 
@@ -58,10 +54,10 @@ public class Procralisation {
             final String key = m.getName();
             final String s = messages.get(key);
             if (null == s)
-                throw new ProcralisationException(key + " not found in " + filename); //$NON-NLS-1$
+                throw new ProcralisationException(key + " not found in " + filename);
 
             final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key,
-                    "()Ljava/lang/String;", null, null); //$NON-NLS-1$
+                    "()Ljava/lang/String;", null, null);
             mv.visitCode();
             mv.visitLdcInsn(s);
             mv.visitInsn(Opcodes.ARETURN);
@@ -71,20 +67,6 @@ public class Procralisation {
         cw.visitEnd();
 
         final byte[] by = cw.toByteArray();
-
-        PrintWriter pw = new PrintWriter(System.out);
-        CheckClassAdapter.verify(new ClassReader(by), true, pw);
-
-        try {
-            final FileOutputStream fo = new FileOutputStream("foo.class");
-            try {
-                fo.write(by);
-            } finally {
-                fo.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         try {
             return (T) new ClassLoader(Procralisation.class.getClassLoader()) {
@@ -105,11 +87,11 @@ public class Procralisation {
 
     private static String propertyCode(Locale l) {
         final String country = l.getCountry();
-        return l.getLanguage() + (country.isEmpty() ? "" : "_" + country); //$NON-NLS-1$ //$NON-NLS-2$
+        return l.getLanguage() + (country.isEmpty() ? "" : "_" + country);
     }
 
     private static Map<String, String> loadProperties(Class<?> c, String filename) {
-        final Map<String, String> messages = new HashMap();
+        final Map<String, String> messages = new HashMap<String, String>();
         try {
 
             final InputStream ras = c.getClassLoader().getResourceAsStream(filename);
@@ -121,17 +103,17 @@ public class Procralisation {
             try {
                 String q;
                 while (null != (q = br.readLine()))
-                    if (q.startsWith("#")) //$NON-NLS-1$
+                    if (q.startsWith("#"))
                         continue;
                     else {
-                        final String[] sp = q.split("=", 2); //$NON-NLS-1$
+                        final String[] sp = q.split("=", 2);
                         messages.put(sp[0], sp[1]);
                     }
             } finally {
                 br.close();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failure to read " + filename, e); //$NON-NLS-1$
+            throw new RuntimeException("Failure to read " + filename, e);
         }
         return messages;
     }
