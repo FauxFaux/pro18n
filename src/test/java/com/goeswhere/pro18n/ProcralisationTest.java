@@ -100,4 +100,22 @@ public class ProcralisationTest {
 		assertEquals("1.000 5,7", Procralisation.make(TwoArgs.class, file, Locale.GERMAN).two(1000, 5.7f));
 	}
 
+	final String range = "{0,choice,0#are no files|1#is one file|1<are {0,number,integer} files} {1}";
+
+	@Test public void testRangeOk() {
+		assertEquals("are no files 5.7", Procralisation.make(TwoArgs.class, new HashMap<String, String>() {{
+			put("two", range);
+		}}).two(0, 5.7f));
+	}
+
+	public static abstract class Blerg {
+		public abstract String two(String l, float s);
+	}
+
+	@Test(expected=ProcralisationException.class)
+	public void testRangeBad() {
+		Procralisation.make(Blerg.class, new HashMap<String, String>() {{
+			put("two", range);
+		}}).two("2", 5.7f);
+	}
 }

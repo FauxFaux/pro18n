@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.text.ChoiceFormat;
+import java.text.Format;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -94,7 +96,8 @@ public class Procralisation {
 
 			final Class<?>[] params = m.getParameterTypes();
 
-			final int expAgs = new MessageFormat(s).getFormatsByArgumentIndex().length;
+			final Format[] formats = new MessageFormat(s).getFormatsByArgumentIndex();
+			final int expAgs = formats.length;
 			if (params.length != expAgs)
 				throw new ProcralisationException(nameWithSlashes + "'s " + key +
 						" has the wrong number of arguments" +
@@ -126,6 +129,9 @@ public class Procralisation {
 				mv.visitInsn(Opcodes.DUP);
 				mv.visitLdcInsn(i); // array index
 				Class<?> cl = params[i];
+
+				final boolean mustBeNumber = formats[i] instanceof ChoiceFormat;
+
 				if (cl.isPrimitive()) { // PANIC
 
 					if (cl.isAssignableFrom(int.class)){
@@ -140,6 +146,8 @@ public class Procralisation {
 						++parameter;
 					} else if (cl.isAssignableFrom(boolean.class)) {
 						objectify(mv, cl, "java/lang/Boolean", Opcodes.ILOAD, parameter);
+						if (mustBeNumber)
+							throw new ProcralisationException("parameter " + i + " must be a number, not a boolean");
 					} else if (cl.isAssignableFrom(short.class)) {
 						objectify(mv, cl, "java/lang/Short", Opcodes.ILOAD, parameter);
 					} else
@@ -147,8 +155,13 @@ public class Procralisation {
 
 					++parameter;
 
-				} else
+				} else {
+					if (mustBeNumber
+							&& !cl.equals(Object.class)
+							&& !cl.isInstance(Number.class))
+						throw new ProcralisationException("parameter " + i + " must be a number, not a " + cl);
 					mv.visitVarInsn(Opcodes.ALOAD, parameter++); // parameter n
+				}
 				mv.visitInsn(Opcodes.AASTORE);
 				// Stack: (Object[5])
 			}
