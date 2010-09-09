@@ -16,7 +16,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.util.ASMifierClassVisitor;
 
 
 public class Procralisation {
@@ -30,10 +29,10 @@ public class Procralisation {
 		public ProcralisationException(Throwable e) {
 			super(e);
 		}
-	}
 
-	public static void main(String[] args) throws Exception {
-		ASMifierClassVisitor.main(new String[] { "c:/workspace/scratch/bin/Scratch.class" });
+		public ProcralisationException(String string, IOException e) {
+			super(string, e);
+		}
 	}
 
 	static <T> T make(Class<T> in) {
@@ -179,28 +178,27 @@ public class Procralisation {
 	}
 
 	static Map<String, String> loadProperties(Class<?> c, Locale l) {
-		try {
-			return readMessages(findPropertiesFile(c, l));
-		} catch (IOException e) {
-			throw new RuntimeException("Failure reading " + c + "'s " + l, e);
-		}
-	}
-
-	private static InputStream findPropertiesFile(Class<?> c, Locale l) {
+		final Map<String, String> ret = new HashMap<String, String>();
 		final String namebase = nameWithSlashes(c);
 		for (String localeCode : new String[] {
-				"_" + l.getLanguage() + "_" + l.getCountry() + "_" + l.getVariant(),
-				"_" + l.getLanguage() + "_" + l.getCountry(),
+				"",
 				"_" + l.getLanguage(),
-				""
+				"_" + l.getLanguage() + "_" + l.getCountry(),
+				"_" + l.getLanguage() + "_" + l.getCountry() + "_" + l.getVariant(),
 		}) {
 			final String filename = namebase + localeCode + ".properties";
 			final InputStream ras = c.getClassLoader().getResourceAsStream(filename);
 			if (null != ras)
-				return ras;
+				try {
+					ret.putAll(readMessages(ras));
+				} catch (IOException e) {
+					throw new ProcralisationException("Failure reading " + filename, e);
+				}
 		}
 
-		throw new IllegalArgumentException(c + "'s classloader couldn't find an acceptable properties for " + l);
+		if (ret.isEmpty())
+			throw new ProcralisationException(c + "'s classloader couldn't find an acceptable properties for " + l);
+		return ret;
 	}
 
 	private static Map<String, String> readMessages(final InputStream ras) throws IOException {
@@ -209,7 +207,7 @@ public class Procralisation {
 			final Map<String, String> messages = new HashMap<String, String>();
 			String q;
 			while (null != (q = br.readLine()))
-				if (q.startsWith("#"))
+				if (q.startsWith("#") || q.trim().isEmpty())
 					continue;
 				else {
 					final String[] sp = q.split("=", 2);

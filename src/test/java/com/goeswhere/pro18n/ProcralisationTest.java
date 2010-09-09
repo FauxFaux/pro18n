@@ -83,4 +83,12 @@ public class ProcralisationTest {
 			put("unnecessary", "pony");
 		}});
 	}
+
+	@Test public void testHilari() {
+		final HilariBundle m = Procralisation.make(HilariBundle.class, new Locale("en", "GB", "PONY"));
+		assertEquals("pge1nby", m.one());
+		assertEquals("ge2nb", m.two());
+		assertEquals("e3n", m.three());
+		assertEquals("4", m.four());
+	}
 }
