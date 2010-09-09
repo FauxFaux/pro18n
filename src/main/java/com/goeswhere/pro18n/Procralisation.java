@@ -211,7 +211,7 @@ public class Procralisation {
 					continue;
 				else {
 					final String[] sp = q.split("=", 2);
-					messages.put(sp[0], sp[1]);
+					messages.put(sp[0].trim(), sp[1].trim());
 				}
 			return messages;
 		} finally {
