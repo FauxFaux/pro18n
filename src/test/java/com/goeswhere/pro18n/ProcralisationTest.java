@@ -8,6 +8,8 @@ import java.util.Locale;
 
 import org.junit.Test;
 
+import com.goeswhere.pro18n.Procralisation.ProcralisationException;
+
 public class ProcralisationTest {
 	@Test public void testWithMap() {
 		final Strings m = Procralisation.make(Strings.class, new HashMap<String, String>() {{
@@ -35,6 +37,9 @@ public class ProcralisationTest {
 	@Test public void testWtfMF() {
 		assertEquals(0, new MessageFormat("pony").getFormats().length);
 		assertEquals(2, new MessageFormat("{0} ponies sat on a {1}").getFormats().length);
+		assertEquals(2, new MessageFormat("{0} ponies sat on a {0}").getFormats().length);
+		assertEquals(1, new MessageFormat("{0} ponies sat on a {0}").getFormatsByArgumentIndex().length);
+		assertEquals(0, new MessageFormat("pony").getFormatsByArgumentIndex().length);
 	}
 
 	@Test public void testArgs() {
@@ -58,5 +63,16 @@ public class ProcralisationTest {
 			put("wider", "{0} {1} {2} {3}");
 		}});
 		assertEquals("5 2 7.0 3", m.wider(5l, 2, 7., 3));
+	}
+
+	public static abstract class TwoArgs {
+		public abstract String two(long l, int i);
+	}
+
+	@Test(expected=ProcralisationException.class)
+	public void testAngry() {
+		Procralisation.make(TwoArgs.class, new HashMap<String, String>() {{
+			put("two", "{0} {1} {2}");
+		}});
 	}
 }

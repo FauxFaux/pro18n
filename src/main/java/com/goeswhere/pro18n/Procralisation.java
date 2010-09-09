@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -62,11 +63,18 @@ public class Procralisation {
 			final String key = m.getName();
 			final String s = messages.get(key);
 			if (null == s)
-				throw new ProcralisationException(key + " not found in source ");
+				throw new ProcralisationException(nameWithSlashes + "'s " + key + " not found in file");
 
+
+			final Class<?>[] params = m.getParameterTypes();
+
+			final int expAgs = new MessageFormat(s).getFormatsByArgumentIndex().length;
+			if (params.length != expAgs)
+				throw new ProcralisationException(nameWithSlashes + "'s " + key +
+						" has the wrong number of arguments" +
+						" (" + params.length + " vs. " + expAgs + " in file)");
 
 			final StringBuilder signature = new StringBuilder("(");
-			final Class<?>[] params = m.getParameterTypes();
 			for (Class<?> t : params)
 				signature.append(Type.getType(t));
 			signature.append(")Ljava/lang/String;");
