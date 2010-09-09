@@ -82,8 +82,8 @@ public class Procralisation {
 			mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
 
 
+			int parameter = 1;
 			for (int i = 0; i < params.length; ++i) {
-				final int parameter = i + 1;
 
 				// Stack: (Object[5])
 				mv.visitInsn(Opcodes.DUP);
@@ -91,9 +91,11 @@ public class Procralisation {
 				Class<?> cl = params[i];
 				if (cl.isPrimitive()) { // PANIC
 					mv.visitVarInsn(loadInstruction(cl), parameter);
-					mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/String", "valueOf", "(" + Type.getType(cl) + ")Ljava/lang/String;");
+					parameter += fatness(cl);
+					mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/String",
+							"valueOf", "(" + typeForStringValueOf(cl) + ")Ljava/lang/String;");
 				} else
-					mv.visitVarInsn(Opcodes.ALOAD, parameter); // parameter n
+					mv.visitVarInsn(Opcodes.ALOAD, parameter++); // parameter n
 				mv.visitInsn(Opcodes.AASTORE);
 				// Stack: (Object[5])
 			}
@@ -102,7 +104,7 @@ public class Procralisation {
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/text/MessageFormat", "format",
 					"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;");
 			mv.visitInsn(Opcodes.ARETURN);
-			mv.visitMaxs(5 + params.length, 1 + params.length);
+			mv.visitMaxs(5 + params.length, 1 + 2*params.length);
 			mv.visitEnd();
 		}
 		cw.visitEnd();
@@ -123,8 +125,22 @@ public class Procralisation {
 		}
 	}
 
+	private static Type typeForStringValueOf(Class<?> cl) {
+		if (cl.isAssignableFrom(short.class))
+			return Type.INT_TYPE;
+		return Type.getType(cl);
+	}
+
+	private static int fatness(Class<?> cl) {
+		if (cl.isAssignableFrom(long.class) || cl.isAssignableFrom(double.class))
+			return 2;
+		return 1;
+	}
+
 	private static int loadInstruction(Class<?> cl) {
-		if (cl.isAssignableFrom(int.class))
+		if (cl.isAssignableFrom(int.class)
+				|| cl.isAssignableFrom(boolean.class)
+				|| cl.isAssignableFrom(short.class))
 			return Opcodes.ILOAD;
 
 		if (cl.isAssignableFrom(long.class))

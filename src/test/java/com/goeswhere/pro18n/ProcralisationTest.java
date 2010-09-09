@@ -41,8 +41,22 @@ public class ProcralisationTest {
 		final StringArgs m = Procralisation.make(StringArgs.class, new HashMap<String, String>() {{
 			put("foo", "{1} ponies sat on a {0}");
 			put("baz", "{0} ponies sat on a {0}");
+			put("types", "{0} {1} {2} {3} {4} {5} {6} {7}");
 		}});
 		assertEquals("mat ponies sat on a mat", m.baz("mat"));
 		assertEquals("5 ponies sat on a mat", m.foo("mat", 5));
+		assertEquals("foo 7 14 false 23.0 25 29.0 de_DE",
+				m.types("foo", 7l, 14, false, 23., (short)25, 29.f, Locale.GERMANY));
+	}
+
+	public static abstract class Wider {
+		public abstract String wider(long l, int i, double d, int q);
+	}
+
+	@Test public void testWider() {
+		final Wider m = Procralisation.make(Wider.class, new HashMap<String, String>() {{
+			put("wider", "{0} {1} {2} {3}");
+		}});
+		assertEquals("5 2 7.0 3", m.wider(5l, 2, 7., 3));
 	}
 }
