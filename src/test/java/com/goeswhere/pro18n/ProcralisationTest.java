@@ -66,7 +66,7 @@ public class ProcralisationTest {
 	}
 
 	public static abstract class TwoArgs {
-		public abstract String two(long l, int i);
+		public abstract String two(long l, float i);
 	}
 
 	@Test(expected=ProcralisationException.class)
@@ -93,10 +93,11 @@ public class ProcralisationTest {
 	}
 
 	@Test public void testLocaliseNumbers() {
-		final TwoArgs m = Procralisation.make(TwoArgs.class, new HashMap<String, String>() {{
+		final HashMap<String, String> file = new HashMap<String, String>() {{
 			put("two", "{0} {1}");
-		}});
-
+		}};
+		assertEquals("1,000 5.7", Procralisation.make(TwoArgs.class, file, Locale.ENGLISH).two(1000, 5.7f));
+		assertEquals("1.000 5,7", Procralisation.make(TwoArgs.class, file, Locale.GERMAN).two(1000, 5.7f));
 	}
 
 }
