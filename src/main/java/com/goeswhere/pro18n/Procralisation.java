@@ -25,13 +25,15 @@ public class Procralisation {
     }
 
     static <T> T make(Class<T> in) {
-        final String name = in.getName();
-        final Locale l = Locale.ENGLISH;
+        return make(in, Locale.getDefault());
+    }
 
-        final String nameWithSlashes = slashify(name);
-        final String filename = nameWithSlashes + "_" + propertyCode(l) + ".properties";
+    static <T> T make(Class<T> in, Locale l) {
+        return make(in, loadProperties(in, l));
+    }
 
-        final Map<String, String> messages = loadProperties(in, filename);
+    static <T> T make(Class<T> in, Map<String, String> messages) {
+        final String nameWithSlashes = nameWithSlashes(in);
 
         final ClassWriter cw = new ClassWriter(0);
         final String nwsImpl = nameWithSlashes + "Impl";
@@ -54,7 +56,7 @@ public class Procralisation {
             final String key = m.getName();
             final String s = messages.get(key);
             if (null == s)
-                throw new ProcralisationException(key + " not found in " + filename);
+                throw new ProcralisationException(key + " not found in source ");
 
             final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, key,
                     "()Ljava/lang/String;", null, null);
@@ -82,8 +84,8 @@ public class Procralisation {
         }
     }
 
-    private static String slashify(final String name) {
-        return name.replace('.', '/');
+    private static <T> String nameWithSlashes(Class<T> in) {
+        return in.getName().replace('.', '/');
     }
 
     private static String propertyCode(Locale l) {
@@ -91,31 +93,35 @@ public class Procralisation {
         return l.getLanguage() + (country.isEmpty() ? "" : "_" + country);
     }
 
-    private static Map<String, String> loadProperties(Class<?> c, String filename) {
-        final Map<String, String> messages = new HashMap<String, String>();
+    static Map<String, String> loadProperties(Class<?> c, Locale l) {
+        final String filename = nameWithSlashes(c) + "_" + propertyCode(l) + ".properties";
         try {
 
             final InputStream ras = c.getClassLoader().getResourceAsStream(filename);
             if (null == ras)
                 throw new IOException(c + "'s classloader couldn't find " + filename);
 
-            final BufferedReader br = new BufferedReader(new InputStreamReader(
-                    ras));
+            final BufferedReader br = new BufferedReader(new InputStreamReader(ras));
             try {
-                String q;
-                while (null != (q = br.readLine()))
-                    if (q.startsWith("#"))
-                        continue;
-                    else {
-                        final String[] sp = q.split("=", 2);
-                        messages.put(sp[0], sp[1]);
-                    }
+                return readMessages(br);
             } finally {
                 br.close();
             }
         } catch (IOException e) {
             throw new RuntimeException("Failure to read " + filename, e);
         }
+    }
+
+    static Map<String, String> readMessages(final BufferedReader br) throws IOException {
+        final Map<String, String> messages = new HashMap<String, String>();
+        String q;
+        while (null != (q = br.readLine()))
+            if (q.startsWith("#"))
+                continue;
+            else {
+                final String[] sp = q.split("=", 2);
+                messages.put(sp[0], sp[1]);
+            }
         return messages;
     }
 
