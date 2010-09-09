@@ -24,4 +24,10 @@ public class ProcralisationTest {
         assertEquals("foo's contents", m.foo());
         assertEquals("bar's contents", m.bar());
     }
+
+    @Test public void testWithVaryingLocale() {
+        assertEquals("GENERIC MESSAGE FOR BAR", Procralisation.make(Strings.class, Locale.GERMAN).bar());
+        assertEquals("le bar's contents", Procralisation.make(Strings.class, new Locale("fr", "CA")).bar());
+        assertEquals("derka", Procralisation.make(Strings.class, new Locale("th", "TH", "TH")).bar());
+    }
 }

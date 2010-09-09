@@ -85,41 +85,47 @@ public class Procralisation {
         return in.getName().replace('.', '/');
     }
 
-    private static String propertyCode(Locale l) {
-        final String country = l.getCountry();
-        return l.getLanguage() + (country.isEmpty() ? "" : "_" + country);
-    }
-
     static Map<String, String> loadProperties(Class<?> c, Locale l) {
-        final String filename = nameWithSlashes(c) + "_" + propertyCode(l) + ".properties";
         try {
-
-            final InputStream ras = c.getClassLoader().getResourceAsStream(filename);
-            if (null == ras)
-                throw new IOException(c + "'s classloader couldn't find " + filename);
-
-            final BufferedReader br = new BufferedReader(new InputStreamReader(ras));
-            try {
-                return readMessages(br);
-            } finally {
-                br.close();
-            }
+            return readMessages(findPropertiesFile(c, l));
         } catch (IOException e) {
-            throw new RuntimeException("Failure to read " + filename, e);
+            throw new RuntimeException("Failure reading " + c + "'s " + l, e);
         }
     }
 
-    static Map<String, String> readMessages(final BufferedReader br) throws IOException {
-        final Map<String, String> messages = new HashMap<String, String>();
-        String q;
-        while (null != (q = br.readLine()))
-            if (q.startsWith("#"))
-                continue;
-            else {
-                final String[] sp = q.split("=", 2);
-                messages.put(sp[0], sp[1]);
-            }
-        return messages;
+    private static InputStream findPropertiesFile(Class<?> c, Locale l) {
+        final String namebase = nameWithSlashes(c);
+        for (String localeCode : new String[] {
+                "_" + l.getLanguage() + "_" + l.getCountry() + "_" + l.getVariant(),
+                "_" + l.getLanguage() + "_" + l.getCountry(),
+                "_" + l.getLanguage(),
+                ""
+        }) {
+            final String filename = namebase + localeCode + ".properties";
+            final InputStream ras = c.getClassLoader().getResourceAsStream(filename);
+            if (null != ras)
+                return ras;
+        }
+
+        throw new IllegalArgumentException(c + "'s classloader couldn't find an acceptable properties for " + l);
+    }
+
+    private static Map<String, String> readMessages(final InputStream ras) throws IOException {
+        final BufferedReader br = new BufferedReader(new InputStreamReader(ras));
+        try {
+            final Map<String, String> messages = new HashMap<String, String>();
+            String q;
+            while (null != (q = br.readLine()))
+                if (q.startsWith("#"))
+                    continue;
+                else {
+                    final String[] sp = q.split("=", 2);
+                    messages.put(sp[0], sp[1]);
+                }
+            return messages;
+        } finally {
+            br.close();
+        }
     }
 
 }
