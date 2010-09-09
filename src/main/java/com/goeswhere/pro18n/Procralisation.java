@@ -127,10 +127,32 @@ public class Procralisation {
 				mv.visitLdcInsn(i); // array index
 				Class<?> cl = params[i];
 				if (cl.isPrimitive()) { // PANIC
-					mv.visitVarInsn(loadInstruction(cl), parameter);
-					parameter += fatness(cl);
-					mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/String",
-							"valueOf", "(" + typeForStringValueOf(cl) + ")Ljava/lang/String;");
+
+					if (cl.isAssignableFrom(int.class)){
+						mv.visitVarInsn(Opcodes.ILOAD, parameter);
+						objectify(mv, cl, "java/lang/Integer");
+					} else if (cl.isAssignableFrom(long.class)) {
+						mv.visitVarInsn(Opcodes.LLOAD, parameter);
+						objectify(mv, cl, "java/lang/Long");
+						++parameter;
+					} else if (cl.isAssignableFrom(float.class)) {
+						mv.visitVarInsn(Opcodes.FLOAD, parameter);
+						objectify(mv, cl, "java/lang/Float");
+					} else if (cl.isAssignableFrom(double.class)) {
+						mv.visitVarInsn(Opcodes.DLOAD, parameter);
+						objectify(mv, cl, "java/lang/Double");
+						++parameter;
+					} else if (cl.isAssignableFrom(boolean.class)) {
+						mv.visitVarInsn(Opcodes.ILOAD, parameter);
+						objectify(mv, cl, "java/lang/Boolean");
+					} else if (cl.isAssignableFrom(short.class)) {
+						mv.visitVarInsn(Opcodes.ILOAD, parameter);
+						objectify(mv, cl, "java/lang/Short");
+					} else
+						throw new IllegalArgumentException("Unexpected primitive type " + cl);
+
+					++parameter;
+
 				} else
 					mv.visitVarInsn(Opcodes.ALOAD, parameter++); // parameter n
 				mv.visitInsn(Opcodes.AASTORE);
@@ -167,6 +189,11 @@ public class Procralisation {
 		}
 	}
 
+	private static void objectify(final MethodVisitor mv, Class<?> cl, final String ty) {
+		mv.visitMethodInsn(Opcodes.INVOKESTATIC, ty,
+				"valueOf", "(" + Type.getType(cl) + ")L" + ty + ";");
+	}
+
 	private static String signature(final Class<?>[] params) {
 		final StringBuilder signature = new StringBuilder("(");
 		for (Class<?> t : params)
@@ -174,36 +201,6 @@ public class Procralisation {
 		signature.append(")Ljava/lang/String;");
 
 		return signature.toString();
-	}
-
-	private static Type typeForStringValueOf(Class<?> cl) {
-		if (cl.isAssignableFrom(short.class))
-			return Type.INT_TYPE;
-		return Type.getType(cl);
-	}
-
-	private static int fatness(Class<?> cl) {
-		if (cl.isAssignableFrom(long.class) || cl.isAssignableFrom(double.class))
-			return 2;
-		return 1;
-	}
-
-	private static int loadInstruction(Class<?> cl) {
-		if (cl.isAssignableFrom(int.class)
-				|| cl.isAssignableFrom(boolean.class)
-				|| cl.isAssignableFrom(short.class))
-			return Opcodes.ILOAD;
-
-		if (cl.isAssignableFrom(long.class))
-			return Opcodes.LLOAD;
-
-		if (cl.isAssignableFrom(float.class))
-			return Opcodes.FLOAD;
-
-		if (cl.isAssignableFrom(double.class))
-			return Opcodes.DLOAD;
-
-		return Opcodes.ALOAD;
 	}
 
 	private static <T> String nameWithSlashes(Class<T> in) {

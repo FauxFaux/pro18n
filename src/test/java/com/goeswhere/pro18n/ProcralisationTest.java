@@ -50,8 +50,8 @@ public class ProcralisationTest {
 		}});
 		assertEquals("mat ponies sat on a mat", m.baz("mat"));
 		assertEquals("5 ponies sat on a mat", m.foo("mat", 5));
-		assertEquals("foo 7 14 false 23.0 25 29.0 de_DE",
-				m.types("foo", 7l, 14, false, 23., (short)25, 29.f, Locale.GERMANY));
+		assertEquals("foo 7 14 false 23.5 25 29.5 de_DE",
+				m.types("foo", 7l, 14, false, 23.5, (short)25, 29.5f, Locale.GERMANY));
 	}
 
 	public static abstract class Wider {
@@ -62,7 +62,7 @@ public class ProcralisationTest {
 		final Wider m = Procralisation.make(Wider.class, new HashMap<String, String>() {{
 			put("wider", "{0} {1} {2} {3}");
 		}});
-		assertEquals("5 2 7.0 3", m.wider(5l, 2, 7., 3));
+		assertEquals("5 2 7.7 3", m.wider(5l, 2, 7.7, 3));
 	}
 
 	public static abstract class TwoArgs {
