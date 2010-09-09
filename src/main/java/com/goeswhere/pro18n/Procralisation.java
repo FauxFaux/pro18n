@@ -69,9 +69,10 @@ public class Procralisation {
         final byte[] by = cw.toByteArray();
 
         try {
-            return (T) new ClassLoader(Procralisation.class.getClassLoader()) {
-                private Class<?> foo() {
-                    return defineClass(null, by, 0, by.length);
+            return new ClassLoader(Procralisation.class.getClassLoader()) {
+                @SuppressWarnings("unchecked")
+                private Class<T> foo() {
+                    return (Class<T>) defineClass(null, by, 0, by.length);
                 }
             }.foo().newInstance();
         } catch (InstantiationException e) {
