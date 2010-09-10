@@ -150,6 +150,12 @@ public class Procralisation {
 							throw new ProcralisationException("parameter " + i + " must be a number, not a boolean");
 					} else if (cl.isAssignableFrom(short.class)) {
 						objectify(mv, cl, "java/lang/Short", Opcodes.ILOAD, parameter);
+					} else if (cl.isAssignableFrom(char.class)) {
+						objectify(mv, cl, "java/lang/Character", Opcodes.ILOAD, parameter);
+						if (mustBeNumber)
+							throw new ProcralisationException("parameter " + i + " must be a number, not a char");
+					} else if (cl.isAssignableFrom(byte.class)) {
+						objectify(mv, cl, "java/lang/Byte", Opcodes.ILOAD, parameter);
 					} else
 						throw new IllegalArgumentException("Unexpected primitive type " + cl);
 
