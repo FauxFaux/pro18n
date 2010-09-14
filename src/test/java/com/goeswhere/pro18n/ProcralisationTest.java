@@ -138,4 +138,13 @@ public class ProcralisationTest {
 			put("two", range);
 		}}).two('c', 5.7f);
 	}
+
+	public static abstract class NotGoingToFindMe {
+		public abstract String foo();
+	}
+
+	@Test(expected=ProcralisationException.class)
+	public void testNotFound() {
+		Procralisation.make(NotGoingToFindMe.class);
+	}
 }
