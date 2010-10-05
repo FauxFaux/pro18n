@@ -45,20 +45,20 @@ public class Procralisation {
 		return Locale.getDefault();
 	}
 
-	static <T> T make(Class<T> in) {
+	public static <T> T make(Class<T> in) {
 		return make(in, getDefaultLocale());
 	}
 
 
-	static <T> T make(Class<T> in, Locale l) {
+	public static <T> T make(Class<T> in, Locale l) {
 		return make(in, loadProperties(in, l), l);
 	}
 
-	static <T> T make(Class<T> in, Map<String, String> messages) {
+	public static <T> T make(Class<T> in, Map<String, String> messages) {
 		return make(in, messages, getDefaultLocale());
 	}
 
-	static <T> T make(Class<T> in, Map<String, String> messages, Locale l) {
+	public static <T> T make(Class<T> in, Map<String, String> messages, Locale l) {
 		final String nameWithSlashes = nameWithSlashes(in);
 
 		final ClassWriter cw = new ClassWriter(0);
